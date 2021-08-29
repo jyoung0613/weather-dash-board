@@ -1,0 +1,12 @@
+header {
+    padding: 1%;
+    text-align: center;
+    flex: auto;
+    flex-wrap: wrap;
+    background-color: cyan;
+    background-position: sticky;
+}
+
+h1 {
+    text-decoration: darkcyan;
+}
