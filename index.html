@@ -29,52 +29,48 @@
                     </div>
                 </div>
 
-                <!-- recent saved cities -->
-                <div>
-                    <h3>Recent Cities</h3>
+                    <!-- list recent cities -->
+                <div class="card bg-color-light mt-4" id="recent-cities">
+                    <h3 class="card-header text-uppercase bg-secondary text-light">Recent Cities</h3>
                 </div>
             </div>
 
-            <div>
+            <div class="col-12 col-md-9 city-forcast hide">
                 <!-- Cities current weather forcast -->
-                <div>
-                    <h3>Today's Forecast</h3>
+                <div class="card bg-color-light mt-4 mt-md-0">
+                    <h3 class="card-header text-uppercase bg-secondary text-light">Today's Forecast</h3>
                     <div class="container">
-                        <div>
-                            <h4>
-
+                        <div class="row">
+                            <h4 class="ml-2">
+                                <img class="weather-icon" id="today-icon" />
+                                <span class="align-middle" id="city-name">City Name</span>
                             </h4>
                         </div>
 
-                        <div>
-                            <div>
-                                <p></p>
-                                <p></p>
-                                <p></p>
-                                <p></p>
+                        <div class="row">
+                            <div class="col-12 col-md-6">
+                                <p class="pl-3">Current Temperature: <span id="current-temp"></span> &deg;F</p>
+                                <p class="pl-3">Feels Like: <span id="current-feels-like"></span> &deg;F</p>
+                                <p class="pl-3">Condition: <span id="current-condition"></span></p>
+                                <p class="pl-3">Humidity: <span id="current-humidity"></span>%</p>
                             </div>
-                            <div>
-                                <p></p>
-                                <p></p>
-                                <p></p>
-                                <p></p>
+                            <div class="col-12 col-md-6">
+                                <p class="pl-3">High: <span id="current-high"></span> &deg;F</p>
+                                <p class="pl-3">Low: <span id="current-low"></span> &deg;F</p>
+                                <p class="pl-3">Wind Speed: <span id="current-wind-speed"></span> MPH</p>
+                                <p class="pl-3">UV Index: <span id="current-uvi"></span></p>
                             </div>
                         </div>
-
                     </div>
-
                 </div>
-            </div>
 
-            <!-- city five day -->
-            <div>
-                <h3>Five Day Forecast</h3>
             </div>
 
         </main>
         <footer>
 
         </footer>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
         <script src="./assets/js/script.js"></script>
     </body>
