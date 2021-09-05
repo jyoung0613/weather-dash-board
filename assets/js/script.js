@@ -1,25 +1,25 @@
 var searchBtn = document.querySelector("#city-search-btn");
 var searchHistoryContainer = document.querySelector("#search-history");
-var currentDayCardBody = document.querySelector("#current-day-card-body");
-var fiveDayContainer = document.querySelector("#five-day-forcast-container");
+var currentDayWeather = document.querySelector("#current-day-card-body");
+var fiveDayWeather = document.querySelector("#five-day-forcast-container");
 var weatherIcon = "http://openweathermap.org/img/wn/"; 
 
-// Load search history items from localStorage and parse back to object
+// get search history localStorage and parse back to object
 var searchHistory = JSON.parse(localStorage.getItem("weatherSearchHistory")) || [];
 
-// Add city to search history in local storage
+// Add city to search history
 var addCitySearchHistory = function(city) {
-    // add city to current array
+    
     searchHistory.unshift({"cityName":city});
 
-    // If array has more than 10 items, remove the extra
+    // If more than 10 items, remove the extra
     if(searchHistory.length > 10) {
         searchHistory.splice(10, searchHistory.length);
     }
 
-    // reset localStorage with new adjusted array
+    // localStorage updates with new adjusted array
     localStorage.setItem("weatherSearchHistory", JSON.stringify(searchHistory));
-    // reload history on window
+    
     loadSearchHistory();
 }
 
@@ -29,6 +29,7 @@ var loadSearchHistory = function() {
 
     // Create list group to contain search history items
     var historyListEl = document.createElement("ul");
+    
     historyListEl.className = "list-group";
 
     // Loop through search history array and display results
@@ -56,16 +57,16 @@ var callWeatherAPI = function(city) {
     var apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + adjustedCity + 
     "&appid=8ca68beeae3b0a314bcd89138e8d3a1f";
     
-    // Fetch first url api endpoint
+    // Fetch first api
     fetch(apiUrl)
     .then(function(response) {
         if(response.ok) {
-             // Response returned with code in 200s
+             // Response returned 
             return response.json();
         } else {
-            // Response returned with code in 400s. Display Error Message
-            currentDayCardBody.innerHTML = "<h4>Something went wrong. Please try again. test</h4>";
-            fiveDayContainer.innerHTML = "";
+            // Response returned with error. Display Error Message
+            currentDayWeather.innerHTML = "<h4>Something went wrong. Please try again.</h4>";
+            fiveDayWeather.innerHTML = "";
             console.log("error");
             return;
         }
@@ -77,7 +78,7 @@ var callWeatherAPI = function(city) {
         cityName = response.name;
         country = response.sys.country;
         
-        // Compile new url to use in fetching data from another endpoint
+        // Compile new url to fetch data from onecall api
         var newUrl = "https://api.openweathermap.org/data/2.5/onecall?units=imperial&lat=" 
             + lat + "&lon=" 
             + lon 
@@ -88,20 +89,20 @@ var callWeatherAPI = function(city) {
     })
     .then(function(response) {
         if(response.ok) {
-            // Response returned with code in 200s
+            // Response returned 
             return response.json();
         } else {
-            // Response returned with code in 400s. Display Error Message
-            currentDayCardBody.innerHTML = "<h4>Something went wrong. Please try again.</h4>";
-            fiveDayContainer.innerHTML = "";
+            // Response returned with error. Display Error Message
+            currentDayWeather.innerHTML = "<h4>Something went wrong. Please try again.</h4>";
+            fiveDayWeather.innerHTML = "";
             console.log("error");
             return;
         }
     })
     .then(function(response) {
-        // Grab and display current date
+        // obtain and display current date
         var uvi = response.current.uvi;
-        // Evaluate the UV Index to determine what condition warning should be used
+        // Check the UV Index to determine what condition warning should be used
         if(uvi < 5) {
             var uviCondition = "bg-success";
         } else if (uvi >= 5 && uvi < 8) {
@@ -110,8 +111,8 @@ var callWeatherAPI = function(city) {
             var uviCondition = "bg-danger";
         }
 
-        // Add Current Day Content to currentDayCardBody 
-        currentDayCardBody.innerHTML = "<h2>" + cityName + ", " + country + " (" + moment.unix(response.current.dt).format("MM/DD/YYYY") + ")" 
+        // Add Current Day Content to currentDayWeather 
+        currentDayWeather.innerHTML = "<h2>" + cityName + ", " + country + " (" + moment.unix(response.current.dt).format("MM/DD/YYYY") + ")" 
                                         + "<img class='current-day-icon' src='" + weatherIcon + response.current.weather[0].icon + "@2x.png' /></h2>"
                                         + "<p>Temperature: " + response.current.temp + " " + String.fromCharCode(176) +"F</p>"
                                         + "<p>Humidity: " + response.current.humidity + "%</p>"
@@ -119,7 +120,7 @@ var callWeatherAPI = function(city) {
                                         + "<p>UV Index: <span class='uv-span " + uviCondition + "'>" + uvi + "</span></p>";
 
         // Display 5 day Forcast
-        fiveDayContainer.innerHTML = "<h4>5-Day Forecast:</h4>";
+        fiveDayWeather.innerHTML = "<h4>5-Day Forecast:</h4>";
         var fiveDayCardGroupEl = document.createElement("div");
         fiveDayCardGroupEl.classList = "card-deck justify-content-around";
 
@@ -135,6 +136,7 @@ var callWeatherAPI = function(city) {
             dayCardBodyEl.innerHTML = "<p><span class='daily-date'>" + moment.unix(response.daily[i].dt).format("MM/DD/YYYY") + "</span></h4>"
                                     + "<p><img class='daily-icon' src='" + weatherIcon + response.daily[i].weather[0].icon + ".png' /></p>"
                                     + "<p>Temp: " + response.daily[i].temp.day + " " + String.fromCharCode(176) + "F</p>"
+                                    + "<p>Wind Speed: " + response.daily[i].wind_speed + " MPH</p>"
                                     + "<p>Humidity: " + response.daily[i].humidity + "%</p>";
             // append card body to parent card
             dayCardEl.appendChild(dayCardBodyEl);
@@ -142,13 +144,13 @@ var callWeatherAPI = function(city) {
             fiveDayCardGroupEl.appendChild(dayCardEl);
         }
         // Append five day card group to container
-        fiveDayContainer.appendChild(fiveDayCardGroupEl);
+        fiveDayWeather.appendChild(fiveDayCardGroupEl);
     }) 
     .catch(function(error) {
         // Dispaly message if a reponse code in the 500s is returned.
         console.log(error);
-        currentDayCardBody.innerHTML = "<h4>Something went wrong. Please try again.</h4>";
-        fiveDayContainer.innerHTML = "";
+        currentDayWeather.innerHTML = "<h4>Something went wrong. Please try again.</h4>";
+        fiveDayWeather.innerHTML = "";
     });
     
     // Update search history with new city
@@ -159,16 +161,16 @@ var callWeatherAPI = function(city) {
 var searchCityEvent = function(event) {
     event.preventDefault();
 
-    // get object that was clicked
+    // obtain object that was clicked
     var itemClicked = event.target;
 
     if(itemClicked.id === "city-search-btn") {
-        // grab the value from the search field
+        // get the value from the search field
         var cityName = document.getElementById("city-search-field").value;
         document.getElementById("city-search-field").value = "";
         
         if (cityName) {
-            // cityName provided. Call search against weather API
+            // city name provided. Call search against weather API
             callWeatherAPI(cityName);
         } else {
             // No city entered
