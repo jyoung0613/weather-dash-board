@@ -1,9 +1,59 @@
-.hide {
-    display: none;
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.weather-icon {
-    height: 50px;
-    width: 50px;
+.row {
+    margin: 0px;
+}
+/* header styles */
+header {
+    text-align: center;
+    background-color: #343A40;
+    color: #FFFFFF;
+    padding: 10px;
+}
+
+form {
+    margin-top: 10px;
+}
+/* Left column search container background */
+.search-container {
+    background-color: #F8F9FA;
+}
+
+.search-history {
+    margin: 15px 0;
+}
+/* Changing search history item styles on hover */
+.search-history-items:hover {
+    cursor: pointer;
+    color: #007bff;
+}
+
+.weather-results-container {
+    margin: 15px 0;
+}
+/* Five day forcast weather card styles */
+.weather-card {
+    max-width: 150px;
+    min-width: 150px;
+    background-color: #007BFF;
+    color: #FFFFFF;
+    margin: 0;
+}
+/* Daily date text in 5 day forcaset */
+.daily-date {
+    font-size: 1em;
+    font-weight: bold;
+}
+/* Adding top margin to container objects */
+.div-top-margin {
+    margin: 15px 0;
+}
+.uv-span {
+    padding: 5px;
+    color: #FFFFFF;
 }
 

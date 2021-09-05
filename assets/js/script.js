@@ -1,186 +1,189 @@
-var cityInput = document.querySelector('#city-input');
-var cityBtn = document.querySelector('#search-btn');
-var cityNameEl = document.querySelector('#city-name');
-var cityArr = [];
-var apiKey = '0c142fcc1f42c66bd984c4e113baf511'; // please enter API Key here
+// Creating intial dom objects needed for reference
+var searchBtnEl = document.querySelector("#city-search-btn");
+var searchHistoryContainerEl = document.querySelector("#search-history");
+var currentDayCardBodyEl = document.querySelector("#current-day-card-body");
+var fiveDayContainerEl = document.querySelector("#five-day-forcast-container");
+var openWeatherIconUrl = "http://openweathermap.org/img/wn/"; 
 
-var formHandler = function(event) {
-    // formats city name
-    var selectedCity = cityInput
-        .value
-        .trim()
-        .toLowerCase()
-        .split(' ')
-        .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
-        .join(' ');
+// Load search history items from localStorage and parse back to object
+var searchHistory = JSON.parse(localStorage.getItem("weatherSearchHistory")) || [];
 
-    if (selectedCity) {
-        getCoords(selectedCity);
-        cityInput.value = '';
-    } else {
-        alert('Please enter a city!');
-    };
-};
+// Add city to search history in local storage
+var addCitySearchHistory = function(city) {
+    // add city to current array
+    searchHistory.unshift({"cityName":city});
 
-// uses 'current weather api' to fetch latitude and longitude
-var getCoords = function(city) {
-    var currentWeatherApi = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=imperial&appid=${apiKey}`;
+    // If array has more than 10 items, remove the extra
+    if(searchHistory.length > 10) {
+        searchHistory.splice(10, searchHistory.length);
+    }
 
-    fetch(currentWeatherApi).then(function(response) {
-        if (response.ok) {
-            response.json().then(function(data) {
-                var lon = data.coord['lon'];
-                var lat = data.coord['lat'];
-                getCityForecast(city, lon, lat);
-
-                // saves searched city and refreshes recent city list
-                if (document.querySelector('.city-list')) {
-                    document.querySelector('.city-list').remove();
-                }
-
-                saveCity(city);
-                loadCities();
-            });
-        } else {
-            alert(`Error: ${response.statusText}`)
-        }
-    })
-    .catch(function(error) {
-        alert('Unable to load weather.');
-    })
+    // reset localStorage with new adjusted array
+    localStorage.setItem("weatherSearchHistory", JSON.stringify(searchHistory));
+    // reload history on window
+    loadSearchHistory();
 }
 
-// uses latitude and longitude to fetch current weather and five-day forecast
-var getCityForecast = function(city, lon, lat) {
-    var oneCallApi = `https://api.openweathermap.org/data/2.5/onecall?lat=lat&lon=lon&units=imperial&exclude=minutely,hourly,alerts&appid=0c142fcc1f42c66bd984c4e113baf511`;
-    fetch(oneCallApi).then(function(response) {
-        if (response.ok) {
-            response.json().then(function(data) {
+// Load search history items from local storage
+var loadSearchHistory = function() {
+    searchHistoryContainerEl.innerHTML = "<p>Last 10 searches:</p>";
 
-                // identifies city name in forecast
-                cityNameEl.textContent = `${city} (${moment().format("M/D/YYYY")})`; 
+    // Create list group to contain search history items
+    var historyListEl = document.createElement("ul");
+    historyListEl.className = "list-group";
 
-                console.log(data)
+    // Loop through search history array and display results
+    for(var i = 0; i < searchHistory.length; i++) {
+        // Create list item
+        var searchHistoryItemEl = document.createElement("li");
+        searchHistoryItemEl.classList = "list-group-item search-history-items";
+        searchHistoryItemEl.textContent = searchHistory[i].cityName;
+        searchHistoryItemEl.setAttribute("data-city", searchHistory[i].cityName);
 
-                currentForecast(data);
-                fiveDayForecast(data);
-            });
-        }
-    })
+        // Add the list item to the list group
+        historyListEl.appendChild(searchHistoryItemEl);
+    }
+    // Add new search history list to container
+    searchHistoryContainerEl.appendChild(historyListEl);
 }
 
-// helper function to select HTML element and display rounded temperature
-var displayTemp = function(element, temperature) {
-    var tempEl = document.querySelector(element);
-    var elementText = Math.round(temperature);
-    tempEl.textContent = elementText;
-}
-
-// displays current forecast
-var currentForecast = function(forecast) {
+// Call OpenWeather API 
+var callWeatherAPI = function(city) {
+    // get user input to trim and replace all spaces with a '+' for url
+    adjustedCity = city.trim().split(' ').join('+');
+    var cityName, country = "";
     
-    var forecastEl = document.querySelector('.city-forecast');
-    forecastEl.classList.remove('hide');
-
-    var weatherIconEl = document.querySelector('#today-icon');
-    var currentIcon = forecast.current.weather[0].icon;
-    weatherIconEl.setAttribute('src', `http://openweathermap.org/img/wn/${currentIcon}.png`);
-    weatherIconEl.setAttribute('alt', forecast.current.weather[0].main)
-
-    displayTemp('#current-temp', forecast.current['temp']);
-    displayTemp('#current-feels-like', forecast.current['feels_like']);
-    displayTemp('#current-high', forecast.daily[0].temp.max);
-    displayTemp('#current-low', forecast.daily[0].temp.min);
-
-    var currentConditionEl = document.querySelector('#current-condition');
-    currentConditionEl.textContent = forecast.current.weather[0].description
-        .split(' ')
-        .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
-        .join(' ');
-
-    var currentHumidityEl = document.querySelector('#current-humidity');
-    currentHumidityEl.textContent = forecast.current['humidity'];
-
-    var currentWindEl = document.querySelector('#current-wind-speed')
-    currentWindEl.textContent = forecast.current['wind_speed'];
-
-    var uviEl = document.querySelector('#current-uvi')
-    var currentUvi = forecast.current['uvi'];
-    uviEl.textContent = currentUvi;
-
-    // styles UV index
-    switch (true) {
-        case (currentUvi <= 2):
-            uviEl.className = 'badge badge-success';
-            break;
-        case (currentUvi <= 5):
-            uviEl.className = 'badge badge-warning';
-            break;
-        case (currentUvi <=7):
-            uviEl.className = 'badge badge-danger';
-            break;
-        default:
-            uviEl.className = 'badge text-light';
-            uviEl.setAttribute('style', 'background-color: #553C7B');
-    }
-}
-
-// saves cities into local storage
-var saveCity = function(city) {
-
-    // prevents duplicate city from being saved and moves it to end of array
-    for (var i = 0; i < cityArr.length; i++) {
-        if (city === cityArr[i]) {
-            cityArr.splice(i, 1);
+    // Compile URL
+    var apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + adjustedCity + 
+    "&appid=8ca68beeae3b0a314bcd89138e8d3a1f";
+    
+    // Fetch first url api endpoint
+    fetch(apiUrl)
+    .then(function(response) {
+        if(response.ok) {
+             // Response returned with code in 200s
+            return response.json();
+        } else {
+            // Response returned with code in 400s. Display Error Message
+            currentDayCardBodyEl.innerHTML = "<h4>Something went wrong. Please try again. test</h4>";
+            fiveDayContainerEl.innerHTML = "";
+            console.log("error");
+            return;
         }
-    }
+    })
+    .then(function(response) {
+        // Capture latitude and longitude to use in next fetch
+        var lat = response.coord.lat;
+        var lon = response.coord.lon;
+        cityName = response.name;
+        country = response.sys.country;
+        
+        // Compile new url to use in fetching data from another endpoint
+        var newUrl = "https://api.openweathermap.org/data/2.5/onecall?units=imperial&lat=" 
+            + lat + "&lon=" 
+            + lon 
+            + "&exclude=minutely,hourly&appid=8ca68beeae3b0a314bcd89138e8d3a1f";
 
-    cityArr.push(city);
-    localStorage.setItem('cities', JSON.stringify(cityArr));
+        // return the new api call with corresponding lat and long for searched city
+        return fetch(newUrl);
+    })
+    .then(function(response) {
+        if(response.ok) {
+            // Response returned with code in 200s
+            return response.json();
+        } else {
+            // Response returned with code in 400s. Display Error Message
+            currentDayCardBodyEl.innerHTML = "<h4>Something went wrong. Please try again.</h4>";
+            fiveDayContainerEl.innerHTML = "";
+            console.log("error");
+            return;
+        }
+    })
+    .then(function(response) {
+        // Grab and display current date
+        var uvi = response.current.uvi;
+        // Evaluate the UV Index to determine what condition warning should be used
+        if(uvi < 5) {
+            var uviCondition = "bg-success";
+        } else if (uvi >= 5 && uvi < 8) {
+            var uviCondition = "bg-warning";
+        } else {
+            var uviCondition = "bg-danger";
+        }
+
+        // Add Current Day Content to CurrentDayCardBodyEl 
+        currentDayCardBodyEl.innerHTML = "<h2>" + cityName + ", " + country + " (" + moment.unix(response.current.dt).format("MM/DD/YYYY") + ")" 
+                                        + "<img class='current-day-icon' src='" + openWeatherIconUrl + response.current.weather[0].icon + "@2x.png' /></h2>"
+                                        + "<p>Temperature: " + response.current.temp + " " + String.fromCharCode(176) +"F</p>"
+                                        + "<p>Humidity: " + response.current.humidity + "%</p>"
+                                        + "<p>Wind Speed: " + response.current.wind_speed + " MPH</p>"
+                                        + "<p>UV Index: <span class='uv-span " + uviCondition + "'>" + uvi + "</span></p>";
+
+        // Display 5 day Forcast
+        fiveDayContainerEl.innerHTML = "<h4>5-Day Forecast:</h4>";
+        var fiveDayCardGroupEl = document.createElement("div");
+        fiveDayCardGroupEl.classList = "card-deck justify-content-around";
+
+        // Loop through and display each daily card
+        for (var i = 1; i <= 5; i++) {
+            // create card
+            var dayCardEl = document.createElement("div");
+            dayCardEl.classList = "card weather-card mx-0 mb-3";
+
+            // Create card body
+            var dayCardBodyEl = document.createElement("div");
+            dayCardBodyEl.className = "card-body";
+            dayCardBodyEl.innerHTML = "<p><span class='daily-date'>" + moment.unix(response.daily[i].dt).format("MM/DD/YYYY") + "</span></h4>"
+                                    + "<p><img class='daily-icon' src='" + openWeatherIconUrl + response.daily[i].weather[0].icon + ".png' /></p>"
+                                    + "<p>Temp: " + response.daily[i].temp.day + " " + String.fromCharCode(176) + "F</p>"
+                                    + "<p>Humidity: " + response.daily[i].humidity + "%</p>";
+            // append card body to parent card
+            dayCardEl.appendChild(dayCardBodyEl);
+            // append card to five day card group
+            fiveDayCardGroupEl.appendChild(dayCardEl);
+        }
+        // Append five day card group to container
+        fiveDayContainerEl.appendChild(fiveDayCardGroupEl);
+    }) 
+    .catch(function(error) {
+        // Dispaly message if a reponse code in the 500s is returned.
+        console.log(error);
+        currentDayCardBodyEl.innerHTML = "<h4>Something went wrong. Please try again.</h4>";
+        fiveDayContainerEl.innerHTML = "";
+    });
+    
+    // Update search history with new city
+    addCitySearchHistory(city);
 }
 
-// loads cities from local storage
-var loadCities = function() {
-    cityArr = JSON.parse(localStorage.getItem('cities'));
+// Search City Event Handler
+var searchCityEvent = function(event) {
+    event.preventDefault();
 
-    if (!cityArr) {
-        cityArr = [];
-        return false;
-    } else if (cityArr.length > 5) {
-        // saves only the five most recent cities
-        cityArr.shift();
+    // get object that was clicked
+    var itemClicked = event.target;
+
+    if(itemClicked.id === "city-search-btn") {
+        // grab the value from the search field
+        var cityName = document.getElementById("city-search-field").value;
+        document.getElementById("city-search-field").value = "";
+        
+        if (cityName) {
+            // cityName provided. Call search against weather API
+            callWeatherAPI(cityName);
+        } else {
+            // No city entered
+            alert("You must enter a city name.");
+        }
+    } else if (itemClicked.className.includes("search-history-items")) {
+        // Find weather for selected city
+        callWeatherAPI(itemClicked.getAttribute("data-city"));
     }
-
-    var recentCities = document.querySelector('#recent-cities');
-    var cityListUl = document.createElement('ul');
-    cityListUl.className = 'list-group list-group-flush city-list';
-    recentCities.appendChild(cityListUl);
-
-    for (var i = 0; i < cityArr.length; i++) {
-        var cityListItem = document.createElement('button');
-        cityListItem.setAttribute('type', 'button');
-        cityListItem.className = 'list-group-item';
-        cityListItem.setAttribute('value', cityArr[i]);
-        cityListItem.textContent = cityArr[i];
-        cityListUl.prepend(cityListItem);
-    }
-
-    var cityList = document.querySelector('.city-list');
-    cityList.addEventListener('click', selectRecent)
 }
 
-var selectRecent = function(event) {
-    var clickedCity = event.target.getAttribute('value');
+// Load search history on refresh
+loadSearchHistory();
 
-    getCoords(clickedCity);
-}
-
-loadCities();
-cityBtn.addEventListener('click', formHandler)
-
-// searches for city on ENTER key
-cityInput.addEventListener('keyup', function(event) {
-    if (event.keyCode === 13) {
-        cityBtn.click();
-    }
-});
+// Event Listeners for Search Buttn and Search History Items
+searchHistoryContainerEl.addEventListener("click", searchCityEvent);
+searchBtnEl.addEventListener("click", searchCityEvent);
