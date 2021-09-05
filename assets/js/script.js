@@ -1,9 +1,8 @@
-// Creating intial dom objects needed for reference
-var searchBtnEl = document.querySelector("#city-search-btn");
-var searchHistoryContainerEl = document.querySelector("#search-history");
-var currentDayCardBodyEl = document.querySelector("#current-day-card-body");
-var fiveDayContainerEl = document.querySelector("#five-day-forcast-container");
-var openWeatherIconUrl = "http://openweathermap.org/img/wn/"; 
+var searchBtn = document.querySelector("#city-search-btn");
+var searchHistoryContainer = document.querySelector("#search-history");
+var currentDayCardBody = document.querySelector("#current-day-card-body");
+var fiveDayContainer = document.querySelector("#five-day-forcast-container");
+var weatherIcon = "http://openweathermap.org/img/wn/"; 
 
 // Load search history items from localStorage and parse back to object
 var searchHistory = JSON.parse(localStorage.getItem("weatherSearchHistory")) || [];
@@ -26,7 +25,7 @@ var addCitySearchHistory = function(city) {
 
 // Load search history items from local storage
 var loadSearchHistory = function() {
-    searchHistoryContainerEl.innerHTML = "<p>Last 10 searches:</p>";
+    searchHistoryContainer.innerHTML = "<p>Last 10 searches:</p>";
 
     // Create list group to contain search history items
     var historyListEl = document.createElement("ul");
@@ -44,7 +43,7 @@ var loadSearchHistory = function() {
         historyListEl.appendChild(searchHistoryItemEl);
     }
     // Add new search history list to container
-    searchHistoryContainerEl.appendChild(historyListEl);
+    searchHistoryContainer.appendChild(historyListEl);
 }
 
 // Call OpenWeather API 
@@ -65,8 +64,8 @@ var callWeatherAPI = function(city) {
             return response.json();
         } else {
             // Response returned with code in 400s. Display Error Message
-            currentDayCardBodyEl.innerHTML = "<h4>Something went wrong. Please try again. test</h4>";
-            fiveDayContainerEl.innerHTML = "";
+            currentDayCardBody.innerHTML = "<h4>Something went wrong. Please try again. test</h4>";
+            fiveDayContainer.innerHTML = "";
             console.log("error");
             return;
         }
@@ -93,8 +92,8 @@ var callWeatherAPI = function(city) {
             return response.json();
         } else {
             // Response returned with code in 400s. Display Error Message
-            currentDayCardBodyEl.innerHTML = "<h4>Something went wrong. Please try again.</h4>";
-            fiveDayContainerEl.innerHTML = "";
+            currentDayCardBody.innerHTML = "<h4>Something went wrong. Please try again.</h4>";
+            fiveDayContainer.innerHTML = "";
             console.log("error");
             return;
         }
@@ -111,16 +110,16 @@ var callWeatherAPI = function(city) {
             var uviCondition = "bg-danger";
         }
 
-        // Add Current Day Content to CurrentDayCardBodyEl 
-        currentDayCardBodyEl.innerHTML = "<h2>" + cityName + ", " + country + " (" + moment.unix(response.current.dt).format("MM/DD/YYYY") + ")" 
-                                        + "<img class='current-day-icon' src='" + openWeatherIconUrl + response.current.weather[0].icon + "@2x.png' /></h2>"
+        // Add Current Day Content to currentDayCardBody 
+        currentDayCardBody.innerHTML = "<h2>" + cityName + ", " + country + " (" + moment.unix(response.current.dt).format("MM/DD/YYYY") + ")" 
+                                        + "<img class='current-day-icon' src='" + weatherIcon + response.current.weather[0].icon + "@2x.png' /></h2>"
                                         + "<p>Temperature: " + response.current.temp + " " + String.fromCharCode(176) +"F</p>"
                                         + "<p>Humidity: " + response.current.humidity + "%</p>"
                                         + "<p>Wind Speed: " + response.current.wind_speed + " MPH</p>"
                                         + "<p>UV Index: <span class='uv-span " + uviCondition + "'>" + uvi + "</span></p>";
 
         // Display 5 day Forcast
-        fiveDayContainerEl.innerHTML = "<h4>5-Day Forecast:</h4>";
+        fiveDayContainer.innerHTML = "<h4>5-Day Forecast:</h4>";
         var fiveDayCardGroupEl = document.createElement("div");
         fiveDayCardGroupEl.classList = "card-deck justify-content-around";
 
@@ -134,7 +133,7 @@ var callWeatherAPI = function(city) {
             var dayCardBodyEl = document.createElement("div");
             dayCardBodyEl.className = "card-body";
             dayCardBodyEl.innerHTML = "<p><span class='daily-date'>" + moment.unix(response.daily[i].dt).format("MM/DD/YYYY") + "</span></h4>"
-                                    + "<p><img class='daily-icon' src='" + openWeatherIconUrl + response.daily[i].weather[0].icon + ".png' /></p>"
+                                    + "<p><img class='daily-icon' src='" + weatherIcon + response.daily[i].weather[0].icon + ".png' /></p>"
                                     + "<p>Temp: " + response.daily[i].temp.day + " " + String.fromCharCode(176) + "F</p>"
                                     + "<p>Humidity: " + response.daily[i].humidity + "%</p>";
             // append card body to parent card
@@ -143,13 +142,13 @@ var callWeatherAPI = function(city) {
             fiveDayCardGroupEl.appendChild(dayCardEl);
         }
         // Append five day card group to container
-        fiveDayContainerEl.appendChild(fiveDayCardGroupEl);
+        fiveDayContainer.appendChild(fiveDayCardGroupEl);
     }) 
     .catch(function(error) {
         // Dispaly message if a reponse code in the 500s is returned.
         console.log(error);
-        currentDayCardBodyEl.innerHTML = "<h4>Something went wrong. Please try again.</h4>";
-        fiveDayContainerEl.innerHTML = "";
+        currentDayCardBody.innerHTML = "<h4>Something went wrong. Please try again.</h4>";
+        fiveDayContainer.innerHTML = "";
     });
     
     // Update search history with new city
@@ -185,5 +184,5 @@ var searchCityEvent = function(event) {
 loadSearchHistory();
 
 // Event Listeners for Search Buttn and Search History Items
-searchHistoryContainerEl.addEventListener("click", searchCityEvent);
-searchBtnEl.addEventListener("click", searchCityEvent);
+searchHistoryContainer.addEventListener("click", searchCityEvent);
+searchBtn.addEventListener("click", searchCityEvent);
