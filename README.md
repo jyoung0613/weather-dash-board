@@ -1,3 +1,4 @@
+![Weather-DashBoard](https://user-images.githubusercontent.com/87405768/132858956-747a8b86-f290-45af-a3ce-705c89fdd418.png)
 ## Weather Dashboard
 ##Purpose
 Weather Application that displays current weather and five-day forecast upon city selection by user.
